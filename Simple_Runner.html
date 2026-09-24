@@ -144,7 +144,7 @@
 for(let v = 0; v < view.length; v++) {
     let currentObject = view[v];
     let projectedVertices = [];
-    
+ 
     //- loop through the original vertices (X, Y, Z)
     //- and determine their position in 3D space relative to camera (x, y, z)
     //- then project them onto the 2D plane
@@ -156,7 +156,9 @@ for(let v = 0; v < view.length; v++) {
         camVert.x = currentObject.vertices[a].x - camera.x; 
         camVert.y = currentObject.vertices[a].y - camera.y; 
         camVert.z = currentObject.vertices[a].z - camera.z; 
-	console.log("projected position"); 
+	console.log("projected position");
+	let behind = (camVert.z <= 0.1); // near plane
+
        let canvasPos = {};
         canvasPos.u = camVert.x / camVert.z; //**** TO DO  
        canvasPos.v = camVert.y / camVert.z; //**** TO DO 
@@ -167,9 +169,12 @@ for(let v = 0; v < view.length; v++) {
        canvasPos.u =  canvasPos.u * canvas.width + canvas.width/2;
        canvasPos.v = canvasPos.v * canvas.height + canvas.height/2;
        console.log( canvasPos );
-
-       projectedVertices.push(canvasPos);
-       console.log("---------------"); 
+projectedVertices.push({
+                u: canvasPos.u,
+                v: canvasPos.v,
+                behind: behind
+            });
+              console.log("---------------"); 
 
     }
 
@@ -178,7 +183,7 @@ for(let v = 0; v < view.length; v++) {
     //  draw the line
     for(let e = 0; e < currentObject.edges.length; e++){
       
-      
+  
            //first vertex
       let e1 = currentObject.edges[e][0]; //idx
       let u1 = projectedVertices[ e1 ].u; 
@@ -188,7 +193,10 @@ for(let v = 0; v < view.length; v++) {
       let e2 = currentObject.edges[e][1]; //idx
       let u2 = projectedVertices[ e2 ].u;
       let v2 = canvas.height - projectedVertices[ e2 ].v;  //TO DO- explain why did I do this?
-
+	
+  if (projectedVertices[e1].behind || projectedVertices[e2].behind) {
+                continue;
+            }
       drawLine(u1, v1, u2, v2);
     }
 }
